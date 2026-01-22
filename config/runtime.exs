@@ -563,7 +563,11 @@ config :explorer, Explorer.Market.Fetcher.History,
       ConfigHelper.parse_integer_env_var("EXCHANGE_RATES_HISTORY_FIRST_FETCH_DAY_COUNT", 365)
     )
 
-config :explorer, Explorer.Chain.Transaction, suave_bid_contracts: System.get_env("SUAVE_BID_CONTRACTS", "")
+config :explorer, Explorer.Chain.Transaction,
+  block_miner_gets_burnt_fees?: ConfigHelper.parse_bool_env_var("BLOCK_MINER_GETS_BURNT_FEES"),
+  suave_bid_contracts: System.get_env("SUAVE_BID_CONTRACTS", ""),
+  rootstock_remasc_address: System.get_env("ROOTSTOCK_REMASC_ADDRESS"),
+  rootstock_bridge_address: System.get_env("ROOTSTOCK_BRIDGE_ADDRESS")
 
 config :explorer, Explorer.Chain.Transaction.History.Historian,
   enabled: transactions_stats_enabled,
@@ -597,24 +601,20 @@ config :explorer, Explorer.Chain.Cache.BlockNumber,
   global_ttl: ConfigHelper.cache_global_ttl(disable_indexer?)
 
 config :explorer, Explorer.Chain.Cache.Blocks,
-  ttl_check_interval: ConfigHelper.cache_ttl_check_interval(disable_indexer?),
-  global_ttl: ConfigHelper.cache_global_ttl(disable_indexer?)
+  ttl_check_interval: false,
+  global_ttl: nil
 
 config :explorer, Explorer.Chain.Cache.Transactions,
-  ttl_check_interval: ConfigHelper.cache_ttl_check_interval(disable_indexer?),
-  global_ttl: ConfigHelper.cache_global_ttl(disable_indexer?)
-
-config :explorer, Explorer.Chain.Cache.TransactionsApiV2,
-  ttl_check_interval: ConfigHelper.cache_ttl_check_interval(disable_indexer?),
-  global_ttl: ConfigHelper.cache_global_ttl(disable_indexer?)
+  ttl_check_interval: false,
+  global_ttl: nil
 
 config :explorer, Explorer.Chain.Cache.Accounts,
   ttl_check_interval: ConfigHelper.cache_ttl_check_interval(disable_indexer?),
   global_ttl: ConfigHelper.cache_global_ttl(disable_indexer?)
 
 config :explorer, Explorer.Chain.Cache.Uncles,
-  ttl_check_interval: ConfigHelper.cache_ttl_check_interval(disable_indexer?),
-  global_ttl: ConfigHelper.cache_global_ttl(disable_indexer?)
+  ttl_check_interval: false,
+  global_ttl: nil
 
 celo_l2_migration_block = ConfigHelper.parse_integer_or_nil_env_var("CELO_L2_MIGRATION_BLOCK")
 celo_epoch_manager_contract_address = System.get_env("CELO_EPOCH_MANAGER_CONTRACT")
@@ -649,6 +649,15 @@ config :explorer, Explorer.ThirdPartyIntegrations.NovesFi,
 config :explorer, Explorer.ThirdPartyIntegrations.Xname,
   service_url: ConfigHelper.parse_url_env_var("XNAME_BASE_API_URL", "https://gateway.xname.app"),
   api_key: System.get_env("XNAME_API_TOKEN")
+
+dynamic_env_id = System.get_env("ACCOUNT_DYNAMIC_ENV_ID")
+
+config :explorer, Explorer.ThirdPartyIntegrations.Dynamic,
+  enabled: !is_nil(dynamic_env_id),
+  env_id: dynamic_env_id,
+  url: "https://app.dynamic.xyz/api/v0/sdk/#{dynamic_env_id}/.well-known/jwks"
+
+config :explorer, Explorer.ThirdPartyIntegrations.Dynamic.Strategy, enabled: !is_nil(dynamic_env_id)
 
 enabled? = ConfigHelper.parse_bool_env_var("MICROSERVICE_SC_VERIFIER_ENABLED", "true")
 # or "eth_bytecode_db"
@@ -742,10 +751,6 @@ config :explorer, Explorer.Chain.Cache.TransactionActionTokensData,
 config :explorer, Explorer.Chain.Fetcher.LookUpSmartContractSourcesOnDemand,
   fetch_interval: ConfigHelper.parse_time_env_var("MICROSERVICE_ETH_BYTECODE_DB_INTERVAL_BETWEEN_LOOKUPS", "10m"),
   max_concurrency: ConfigHelper.parse_integer_env_var("MICROSERVICE_ETH_BYTECODE_DB_MAX_LOOKUPS_CONCURRENCY", 10)
-
-config :explorer, Explorer.Chain.Transaction,
-  rootstock_remasc_address: System.get_env("ROOTSTOCK_REMASC_ADDRESS"),
-  rootstock_bridge_address: System.get_env("ROOTSTOCK_BRIDGE_ADDRESS")
 
 config :explorer, Explorer.Chain.Cache.Counters.AddressTabsElementsCount,
   ttl: ConfigHelper.parse_time_env_var("ADDRESSES_TABS_COUNTERS_TTL", "10m")

@@ -61,6 +61,8 @@ defmodule Explorer.Factory do
   alias Explorer.Chain.Zilliqa.Hash.BLSPublicKey
   alias Explorer.Chain.Zilliqa.Staker, as: ZilliqaStaker
 
+  alias Explorer.Chain.Optimism.Deposit, as: OptimismDeposit
+
   alias Explorer.Chain.Celo.ElectionReward, as: CeloElectionReward
   alias Explorer.Chain.Celo.Epoch, as: CeloEpoch
 
@@ -1478,6 +1480,31 @@ defmodule Explorer.Factory do
     }
   end
 
+  def op_deposit_factory do
+    block = insert(:block)
+    gas_used = Enum.random(21_000..100_000)
+
+    l2_transaction =
+      insert(
+        :transaction,
+        block_number: block.number,
+        block_hash: block.hash,
+        cumulative_gas_used: gas_used,
+        gas_used: gas_used,
+        index: 0,
+        status: :ok
+      )
+
+    %OptimismDeposit{
+      l1_block_number: block_number(),
+      l1_block_timestamp: DateTime.utc_now(),
+      l1_transaction_hash: transaction_hash(),
+      l1_transaction_origin: address_hash(),
+      l2_transaction_hash: l2_transaction.hash,
+      l2_transaction: l2_transaction
+    }
+  end
+
   def db_migration_status_factory do
     %MigrationStatus{
       migration_name: nil,
@@ -1765,6 +1792,8 @@ defmodule Explorer.Factory do
         "lhs" => "0x" <> Base.encode16(<<1::256>>, case: :lower),
         "rhs" => "0x" <> Base.encode16(<<2::256>>, case: :lower)
       }
+    }
+  end
 
   def migration_status_factory do
     %MigrationStatus{
