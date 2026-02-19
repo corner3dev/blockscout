@@ -657,7 +657,7 @@ defmodule BlockScoutWeb.API.V2.TransactionControllerTest do
       )
 
       internal_transactions =
-        51..1
+        51..1//-1
         |> Enum.map(fn index ->
           insert(:internal_transaction,
             transaction: transaction,
@@ -763,7 +763,7 @@ defmodule BlockScoutWeb.API.V2.TransactionControllerTest do
         |> with_block()
 
       logs =
-        50..0
+        50..0//-1
         |> Enum.map(fn index ->
           insert(:log,
             transaction: transaction,
@@ -1468,7 +1468,7 @@ defmodule BlockScoutWeb.API.V2.TransactionControllerTest do
       assert operation_1["hcu_depth"] == fhe_operation_1.hcu_depth
       assert operation_1["block_number"] == fhe_operation_1.block_number
       assert operation_1["caller"] != nil
-      assert operation_1["caller"]["hash"] == to_string(caller.hash)
+      assert operation_1["caller"]["hash"] == Address.checksum(caller.hash)
       assert operation_1["result"] == "0x" <> Base.encode16(fhe_operation_1.result_handle, case: :lower)
       assert operation_1["inputs"] == fhe_operation_1.input_handles
 

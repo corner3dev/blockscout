@@ -52,6 +52,7 @@ defmodule Explorer.Factory do
     TokenTransfer,
     Token.Instance,
     Transaction,
+    TransactionError,
     Wei,
     Withdrawal
   }
@@ -836,7 +837,7 @@ defmodule Explorer.Factory do
       input: %Data{bytes: <<1>>},
       output: %Data{bytes: <<2>>},
       # caller MUST supply `index`
-      trace_address: [],
+      trace_address: nil,
       # caller MUST supply `transaction` because it can't be built lazily to allow overrides without creating an extra
       # transaction
       # caller MUST supply `block_hash` (usually the same as the transaction's)
@@ -859,7 +860,7 @@ defmodule Explorer.Factory do
       gas_used: gas_used,
       # caller MUST supply `index`
       init: data(:internal_transaction_init),
-      trace_address: [],
+      trace_address: nil,
       # caller MUST supply `transaction` because it can't be built lazily to allow overrides without creating an extra
       # transaction
       # caller MUST supply `block_hash` (usually the same as the transaction's)
@@ -871,11 +872,17 @@ defmodule Explorer.Factory do
   def internal_transaction_selfdestruct_factory() do
     %InternalTransaction{
       from_address: build(:address),
-      trace_address: [],
+      trace_address: nil,
       # caller MUST supply `transaction` because it can't be built lazily to allow overrides without creating an extra
       # transaction
       type: :selfdestruct,
       value: sequence("internal_transaction_value", &Decimal.new(&1))
+    }
+  end
+
+  def transaction_error_factory do
+    %TransactionError{
+      message: "error_#{sequence("transaction_error_message", & &1)}"
     }
   end
 
@@ -1106,6 +1113,7 @@ defmodule Explorer.Factory do
   def transaction_factory do
     %Transaction{
       from_address: build(:address),
+      fhe_operations_count: 0,
       gas: Enum.random(21_000..100_000),
       gas_price: Enum.random(10..99) * 1_000_000_00,
       hash: transaction_hash(),
@@ -1769,7 +1777,6 @@ defmodule Explorer.Factory do
     }
   end
 
-
   def fhe_operation_factory do
     transaction = insert(:transaction) |> with_block()
     block = transaction.block
@@ -1800,7 +1807,6 @@ defmodule Explorer.Factory do
       migration_name: sequence("migration_", &"migration_#{&1}"),
       status: "started",
       meta: nil
-
     }
   end
 end

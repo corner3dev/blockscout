@@ -101,46 +101,4 @@ defmodule Explorer.Chain.FheOperation do
 
     Repo.one(query) || %{operation_count: 0, total_hcu: 0, max_depth_hcu: 0}
   end
-
-  @doc """
-  Returns all unique FHE contract addresses (callers) ordered by total HCU usage.
-  """
-  @spec top_fhe_callers(non_neg_integer()) :: [%{caller: Hash.Address.t(), total_hcu: non_neg_integer(), operation_count: non_neg_integer()}]
-  def top_fhe_callers(limit \\ 10) do
-    query =
-      from(
-        op in __MODULE__,
-        where: not is_nil(op.caller),
-        group_by: op.caller,
-        select: %{
-          caller: op.caller,
-          total_hcu: sum(op.hcu_cost),
-          operation_count: count(op.log_index)
-        },
-        order_by: [desc: sum(op.hcu_cost)],
-        limit: ^limit
-      )
-
-    Repo.all(query)
-  end
-
-  @doc """
-  Returns operation distribution statistics.
-  """
-  @spec operation_stats() :: [%{operation: String.t(), operation_type: String.t(), count: non_neg_integer()}]
-  def operation_stats do
-    query =
-      from(
-        op in __MODULE__,
-        group_by: [op.operation, op.operation_type],
-        select: %{
-          operation: op.operation,
-          operation_type: op.operation_type,
-          count: count(op.log_index)
-        },
-        order_by: [desc: count(op.log_index)]
-      )
-
-    Repo.all(query)
-  end
 end
